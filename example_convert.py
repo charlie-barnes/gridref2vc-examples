@@ -22,7 +22,7 @@ with open('./data/all.csv', 'rb') as f:
         data[row[0]] = row[1]
                   
 def vc(grid):      
-                 
+               
     grid = grid.upper()
 
     # If the grid reference is in the data just return the relevant vc(s), if
@@ -30,42 +30,53 @@ def vc(grid):
     
     try:
         return data[grid]
-    except KeyError:            
+    except KeyError:
+    
+        # get the prefix
+        if grid[1:2].isalpha():
+            prefix = grid[0:2]
+            grid = grid[2:]
+        else:
+            prefix = grid[0:1]
+            grid = grid[1:]
+       
         try:
             # create a 1m grid reference if we can and test
-            if len(grid) >= 12:
-                test = grid[0:2].upper() + grid[2:7] + grid[(len(grid)/2)+1:(len(grid)/2)+6]
+            if len(grid) >= 10:
+                test = prefix + grid[0:5] + grid[(len(grid)/2):(len(grid)/2)+5]
             return data[test]
         except (NameError, KeyError):
             try:
                 # create a 10m grid reference if we can and test
-                if len(grid) >= 10:
-                    test = grid[0:2].upper() + grid[2:6] + grid[(len(grid)/2)+1:(len(grid)/2)+5]
+                if len(grid) >= 8:
+                    test = prefix + grid[0:4] + grid[(len(grid)/2):(len(grid)/2)+4]
                 return data[test]
             except (NameError, KeyError):
                 try:
                     # create a 100m grid reference if we can and test
-                    if len(grid) >= 8:
-                        test = grid[0:2].upper() + grid[2:5] + grid[(len(grid)/2)+1:(len(grid)/2)+4]
+                    if len(grid) >= 6:
+                        test = prefix + grid[0:3] + grid[(len(grid)/2):(len(grid)/2)+3]
                     return data[test]
                 except (NameError, KeyError):
                     try:
                         # create a 1km grid reference if we can and test
                         # (we can't create a 1km from a 5km grid reference)
-                        if len(grid) >= 6 and grid[-2:] not in ('NE', 'NW', 'SE', 'SW'):
-                            test = grid[0:2].upper() + grid[2:4] + grid[(len(grid)/2)+1:(len(grid)/2)+3]
+                        if len(grid) >= 4 and grid[-2:] not in ('NE', 'NW', 'SE', 'SW'):
+                            test = prefix + grid[0:2] + grid[(len(grid)/2):(len(grid)/2)+2]
+                        
                         return data[test]
                     except (NameError, KeyError):  
                         try:
                             # create a 2km grid reference if we can and test
                             # (if we've been given a 2km grid reference then just
-                            # test that)
+                            # test that; we know it will raise an error having got
+                            # this far)
                             # (we can't create a 2km from a 5km grid reference)
-                            if len(grid) == 5 and grid[-1:].isalpha():
+                            if len(grid) == 3 and grid[-1:].isalpha():
                                 test = grid
-                            elif len(grid) >= 5 and grid[-2:] not in ('NE', 'NW', 'SE', 'SW'):
-                                test = grid[0:2].upper() + grid[2:3] + grid[(len(grid)/2)+1:(len(grid)/2)+2] + tetrad_suffix[int(grid[3:4])][int(grid[(len(grid)/2)+2:(len(grid)/2)+3])]
-                            
+                            elif len(grid) >= 3 and grid[-2:] not in ('NE', 'NW', 'SE', 'SW'):
+                                test = prefix + grid[0:1] + grid[(len(grid)/2):(len(grid)/2)+1] + tetrad_suffix[int(grid[1:2])][int(grid[(len(grid)/2)+1:(len(grid)/2)+2])]
+                                
                             return data[test]
                         except (NameError, KeyError):         
                             try:
@@ -76,22 +87,23 @@ def vc(grid):
                                 # in the parentage hierachy as they cross odd-numbered
                                 # boundaries and therefore don't fully encompass child
                                 # grid references.)
-                                if len(grid) >= 4:
+                                if len(grid) >= 2:
                                     # if we've been given a 5km grid reference
                                     # strip the pentad
                                     if grid[-2:] in ('NE', 'NW', 'SE', 'SW'): 
                                         grid = grid[:-2] 
-                                    test = grid[0:2].upper() + grid[2:3] + grid[(len(grid)/2)+1:(len(grid)/2)+2]
+                                    test = prefix + grid[0:1] + grid[(len(grid)/2):(len(grid)/2)+1]
+
                                 return data[test]
                             except (NameError, KeyError):        
                                 try:
                                     # create a 100km grid reference if we can and test
-                                    if len(grid) >= 2:
+                                    if len(grid) >= 0:
                                         # if we've been given a 5km grid reference
                                         # stip the pentad
                                         if grid[-2:] in ('NE', 'NW', 'SE', 'SW'): 
                                             grid = grid[:-2] 
-                                        test = grid[0:2].upper()
+                                        test = prefix
                                     return data[test]
                                 except (NameError, KeyError):        
                                     return None
